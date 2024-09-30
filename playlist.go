@@ -32,7 +32,7 @@ type PlaylistResponse struct {
 	} `json:"tracks"`
 }
 
-const token string =    "BQACkasNZ3hwIeXiLJNDcnPrULMVNz-wR3ALO6_HcNpgMcTMxqm-oFP3ONIBYxYCU-C821aqR6E9fOSLzdZYKXxF5BcxHOtKu1Mu05LbpMB63QKm1Uz2muEAr_pKOOM08axUhqUzHXzaQNmHTh05wuNA8hzsK5_3Aq6VpVGfO5dlTKisxhtHEHNni8S7LBEv-nLv7TPo68nxi7j65Qr1djJOpVoMuswcvCJwhkKqLAWnnfX5-KAT_oeqmJV9oPt71qGqQDGFUj2NhNul0UFZLTf6IrjCwh8Q"
+const token string =    "Your_token_here"
 const endpoint string = "https://api.spotify.com/v1/me/playlists"
 const playlistFile string = "playlist.json"
 
