@@ -70,9 +70,7 @@ func main() {
 		return
 	}
 	// fmt.Println(data)
-	if _, err := os.Stat("/path/to/whatever"); errors.Is(err, os.ErrNotExist) {
-		// path/to/whatever does not exist
-	}
+	
 
 	client = &http.Client{}
 	for _, playlist := range data.Items {
