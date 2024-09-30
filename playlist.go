@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"testing/quick"
 	//	"errors"
 	"flag"
 	"fmt"
@@ -10,6 +11,17 @@ import (
 	"net/http"
 	"os"
 )
+
+type TrackWrite struct {
+	Name string `json:"name"`
+	ID   string `json:"id"`
+}
+
+type PlaylistWrite struct {
+	Name   string  `json:"name"`
+	Tracks []Track `json:"tracks"`
+}
+
 
 type Playlist struct {
 	Name string `json:"name"`
@@ -137,7 +149,7 @@ func main() {
 		fmt.Println(string(playlistBody))
 		fileWriter, err := os.OpenFile(playlistFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 		if err != nil {
-			log.Fatal("error opening automatonplayer.md file:", err)
+			log.Fatal("error opening playlist.json file:", err)
 		}
 
 		defer fileWriter.Close()
@@ -147,6 +159,7 @@ func main() {
 		    fmt.Println("error marshalling body", err)
 		    return
 		}*/
+
 
 		_, err = fileWriter.Write(playlistBody)
 		if err != nil {
