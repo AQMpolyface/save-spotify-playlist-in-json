@@ -21,20 +21,27 @@ type PlaylistInfo struct {
 }
 
 type Track struct {
-	Name         string `json:"name"`
-	ID           string `json:"id"`
-	ExternalURLs struct {
-		Spotify string `json:"spotify"`
-	} `json:"external_urls"`
+	Name    string `json:"name"`
+	Id  	string `json:"id"`
+	Artists []struct {
+		Name string `json:"name"`
+	} `json:"artists"`
 }
+
+
+type Tracks struct {
+	Items []struct {
+		Track Track `json:"track"`
+	} `json:"items"`
+}
+
 type PlaylistResponse struct {
-	Tracks struct {
-		Items []Track `json:"items"`
-	} `json:"tracks"`
+	Tracks Tracks `json:"tracks"`
 }
 
 const endpoint string = "https://api.spotify.com/v1/me/playlists"
 const playlistFile string = "playlist.json"
+const playlistUrl string = "https://api.spotify.com/v1/playlists/"
 
 var token string
 
@@ -99,22 +106,29 @@ func main() {
 		fmt.Printf("Playlist Name: %s, ID: %s\n", playlist.Name, playlist.Id)
 
 		//playlistUrl := fmt.Sprintf("https://api.spotify.com/v1/playlists/%s/tracks", playlist.Id)
-		fields := "items.track(id, name)"
+		//fields := "items.track(id, name)"  ?fields=%s*
 
-		playlistReq, err := http.NewRequest("GET", fmt.Sprintf("https://api.spotify.com/v1/playlists/%s/tracks?fields=%s", playlist.Id, fields), nil)
+		//playlistReq, err := http.NewRequest("GET", fmt.Sprintf("https://api.spotify.com/v1/playlists/%s/tracks", playlist.Id), nil)
 
 		//   playlistReq, err := http.NewRequest("GET", fmt.Sprintf("%s%s?fields=%s", playlistUrl, playlist.Id, fields), nil)
+		//if err != nil {
+		//	log.Fatal(err)
+		//}
+		fields := "items.track(name,id)"
+		url := fmt.Sprintf("https://api.spotify.com/v1/playlists/%s/tracks?fields=%s", playlist.Id, fields)
+		playlistReq, err := http.NewRequest("GET", url, nil)
 		if err != nil {
 			log.Fatal(err)
 		}
-
 		playlistReq.Header.Set("Authorization", "Bearer "+token)
-
+		//playlistReq.Header.Set("User-Agent", "curl/7.64.1")
+		client := &http.Client{}
 		playlistResp, err := client.Do(playlistReq)
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer playlistResp.Body.Close()
+
 		playlistBody, err := io.ReadAll(playlistResp.Body)
 		if err != nil {
 			fmt.Println("error reading body", err)
@@ -138,5 +152,20 @@ func main() {
 		if err != nil {
 			log.Fatal("error writing to playlist.json:", err)
 		}
+		var playlistResponse PlaylistResponse
+		err = json.Unmarshal(body, &playlistResponse)
+		if err != nil {
+			log.Fatal("error unmarshaling data", err)
+		}
+
+		// Loop through the items and print the track ID and name
+		for _, item := range playlistResponse.Tracks.Items {
+			fmt.Println("startinf to parse songname and id")
+			songName := item.Track.Name
+			idname := item.Track.Name
+			fmt.Printf("Track Name: %s, Track ID: %s\n", songName, idname)
+		}
 	}
-}
+
+	}
+
