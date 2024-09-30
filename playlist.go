@@ -2,7 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
+//	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -37,7 +38,16 @@ const endpoint string = "https://api.spotify.com/v1/me/playlists"
 const playlistFile string = "playlist.json"
 
 func main() {
+    var token string
+    flag.StringVar(&token, "", "t" , "token flag")
 
+  flag.Parse()
+
+    if token == "Your_token_here" || token == "" {
+    fmt.Println("please enter a token (with -t, or put it in the program), this program cant work wihout it")
+    return
+
+  }
 	req, err := http.NewRequest("GET", endpoint, nil)
 	if err != nil {
 		log.Fatal(err)
