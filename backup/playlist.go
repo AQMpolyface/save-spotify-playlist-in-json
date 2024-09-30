@@ -2,8 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	//	"errors"
+	"errors"
 	"flag"
+	"flags"
 	"fmt"
 	"io"
 	"log"
@@ -33,21 +34,20 @@ type PlaylistResponse struct {
 	} `json:"tracks"`
 }
 
-const token string = "Your_token_here"
 const endpoint string = "https://api.spotify.com/v1/me/playlists"
 const playlistFile string = "playlist.json"
 
 func main() {
-	var token string
+    var token string
+    flag.StringVar(&token, "", "t" , "token flag")
 
-  flag.StringVar(&token, "", "t", "token flag")
-	flag.Parse()
+  flag.Parse()
 
-	if token == "Your_token_here" || token == "" {
-		fmt.Println("please enter a token (with -t, or put it in the program), this program cant work wihout it")
-		return
+    if token == "Your_token_here" || token == "" {
+    fmt.Println("please enter a token (with -t, or put it in the program), this program cant work wihout it")
+    return
 
-	}
+  }
 	req, err := http.NewRequest("GET", endpoint, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -80,6 +80,9 @@ func main() {
 		return
 	}
 	// fmt.Println(data)
+	if _, err := os.Stat("/path/to/whatever"); errors.Is(err, os.ErrNotExist) {
+		// path/to/whatever does not exist
+	}
 
 	client = &http.Client{}
 	for _, playlist := range data.Items {
@@ -108,22 +111,22 @@ func main() {
 			return
 		}
 		fmt.Println(string(playlistBody))
-		fileWriter, err := os.OpenFile(playlistFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+fileWriter, err := os.OpenFile(playlistFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 		if err != nil {
 			log.Fatal("error opening automatonplayer.md file:", err)
 		}
 
-		defer fileWriter.Close()
+    defer fileWriter.Close()
+    
+    /*dataToWrite, err  := json.Marshal(playlistBody)
+          if err != nil {
+        fmt.Println("error marshalling body", err)
+        return
+    }*/
 
-		/*dataToWrite, err  := json.Marshal(playlistBody)
-		      if err != nil {
-		    fmt.Println("error marshalling body", err)
-		    return
-		}*/
-
-		_, err = fileWriter.Write(playlistBody)
+	_, err = fileWriter.Write(playlistBody)
 		if err != nil {
-			log.Fatal("error writing to playlist.json:", err)
+			log.Fatal("error writing to automatonplayer.md:", err)
 		}
 		//var data PlaylistResponse
 	}
