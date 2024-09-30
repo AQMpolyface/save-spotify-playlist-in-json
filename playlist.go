@@ -33,26 +33,39 @@ type PlaylistResponse struct {
 	} `json:"tracks"`
 }
 
-const token string = "Your_token_here"
 const endpoint string = "https://api.spotify.com/v1/me/playlists"
 const playlistFile string = "playlist.json"
 
-func main() {
-	var token string
+var token string
 
-  flag.StringVar(&token, "", "t", "token flag")
+func main() {
+
+	flag.StringVar(&token, "t", "", "token flag")
 	flag.Parse()
 
-	if token == "Your_token_here" || token == "" {
-		fmt.Println("please enter a token (with -t, or put it in the program), this program cant work wihout it")
-		return
-
+	if token == "" {
+		_, err := os.Stat("token")
+		if os.IsNotExist(err) {
+			fmt.Println("please enter a token (with -t, or put it in the program), this program cant work wihout it")
+			fmt.Scan(&token)
+			return
+		} else if err != nil {
+			fmt.Println("Error checking file:", err)
+		} else {
+			fmt.Println("File exists, using the token saved in the token file")
+			bytetoken, err := os.ReadFile("token")
+			if err != nil {
+				fmt.Println("error reading token file", err)
+				return
+			}
+			token = string(bytetoken)
+		}
 	}
 	req, err := http.NewRequest("GET", endpoint, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	fmt.Println(token)
 	req.Header.Set("Authorization", "Bearer "+token)
 
 	client := &http.Client{}
@@ -125,6 +138,5 @@ func main() {
 		if err != nil {
 			log.Fatal("error writing to playlist.json:", err)
 		}
-		//var data PlaylistResponse
 	}
 }
