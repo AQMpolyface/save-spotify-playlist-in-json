@@ -8,3 +8,11 @@ You have to use an access token. you can get one here: https://developer.spotify
 fixed it :3
 
 //to do: make better json in the file
+
+ if you wanna run it, you will first have to get a token, then 
+
+git clone https://github.com/AQMpolyface/save-spotify-playlist-in-json.git
+
+cd save-spotify-playlist-in-json
+
+go build playlist.go
