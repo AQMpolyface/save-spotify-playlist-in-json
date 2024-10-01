@@ -10,23 +10,23 @@ import (
 	"os"
 )
 
-type TrackWrite struct {
+/*type TrackWrite struct {
 	Name string `json:"name"`
 	ID   string `json:"id"`
-}
+}*/
 
-type PlaylistWrite struct {
+/*type PlaylistWrite struct {
 	Name   string  `json:"name"`
 	Tracks []Track `json:"tracks"`
-}
+}*/
 
 
-type Playlist struct {
+type Playlist struct { //
 	Name string `json:"name"`
 	Id   string `json:"id"`
 }
 
-type PlaylistInfo struct {
+type PlaylistInfo struct { //
 	Items []Playlist `json:"items"`
 }
 
@@ -45,7 +45,7 @@ type Tracks struct {
 	} `json:"items"`
 }
 
-type PlaylistResponse struct {
+type PlaylistResponse struct { //
 	Tracks Tracks `json:"tracks"`
 }
 
@@ -160,8 +160,7 @@ func main() {
 		    return
 		}
 
-      towrite := fmt.Sprintf(`[
-                  %s {
+    towrite := fmt.Sprintf(`%s : [
                     
   `, playlist.Name)
 		_, err = fileWriter.Write([]byte(towrite))
