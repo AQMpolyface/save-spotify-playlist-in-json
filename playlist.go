@@ -64,8 +64,7 @@ func main() {
 		_ , err := os.Stat("token")
       if os.IsNotExist(err) {
       fmt.Println("file doesnt exist", err)
-      fmt.Println("please enter a token (with -t, or put it in the program), this program cant work wihout it")
-			fmt.Scan(&token)
+      fmt.Println("please enter a token (with -t, or put it in the code), this program cant work wihout it")
       return
     } 
     fileStats, err := os.Stat("token")
@@ -75,8 +74,7 @@ func main() {
     }
 
 		if fileStats.Size() <= 0 {
-			fmt.Println("please enter a token (with -t, or put it in the program), this program cant work wihout it")
-			fmt.Scan(&token)
+			fmt.Println("please enter a token (with -t, or put it in the code), this program cant work wihout it")
 			return
 		} else if err != nil {
 			fmt.Println("Error checking file:", err)
@@ -114,6 +112,7 @@ func main() {
 	}
 
 	//fmt.Println(string(body))
+	os.WriteFile("data1.json", body, 0644)
 
 	var data PlaylistInfo
 	err = json.Unmarshal(body, &data)
@@ -147,8 +146,9 @@ func main() {
 			fmt.Println("error reading body", err)
 			return
 		}
+		
 		fmt.Println(string(playlistBody))
-		fileWriter, err := os.OpenFile(playlistFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+		fileWriter, err := os.OpenFile("playlist.json", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 		if err != nil {
 			log.Fatal("error opening playlist.json file:", err)
 		}
@@ -160,28 +160,49 @@ func main() {
 		    return
 		}
 
-    towrite := fmt.Sprintf(`%s : [
+    towrite := fmt.Sprintf(`"%s" : [
                     
   `, playlist.Name)
-		_, err = fileWriter.Write([]byte(towrite))
+  
+
+  
+  _, err = fileWriter.Write([]byte(towrite))
 		if err != nil {
 			log.Fatal("error writing to playlist.json:", err)
 		}
+
+  _, err = fileWriter.Write([]byte(playlistBody))
+  if err != nil {
+	  log.Fatal("error writing to playlist.json:", err)
+  }
+
+
+  endtowrite := `
+    ]`
+
+   _, err = fileWriter.Write([]byte(endtowrite))
+	if err != nil {
+		log.Fatal("error writing to playlist.json:", err)
+	}
 		var playlistResponse PlaylistResponse
 		err = json.Unmarshal(body, &playlistResponse)
 		if err != nil {
 			log.Fatal("error unmarshaling data", err)
 		}
     
-		for _, item := range playlistResponse.Tracks.Items {
-			fmt.Println("startinf to parse songname and id")
+		/**for _, item := range playlistResponse.Tracks.Items {
+
+      fmt.Println("starting to parse songname and id")
 			songName := item.Track.Name
 			idname := item.Track.Name
+    songs := fmt.Sprintf(`
+        { name: %s, id: %s}`, songName, idname)
+_, err = fileWriter.Write([]byte(songs))
 			fmt.Printf("Track Name: %s, Track ID: %s\n", songName, idname)
 		}
     endtowrite := `
     ]`
-    _, err = fileWriter.Write([]byte(endtowrite))
+    _, err = fileWriter.Write([]byte(endtowrite))*/
 	}
 
 	}
