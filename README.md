@@ -24,4 +24,5 @@ go run playlist.go -t "your_token"
 
 or you can put the token if a file called token, in the same directory as the playlist.go file.
 
-I FIXED IT (i think)
+I FIXED IT (i think) 
+got banned for 8 houres from the spotify api, will try to see if it work tomorrow
