@@ -10,13 +10,30 @@ import (
 	"os"
 )
 
-type Playlist struct { 
+type Playlist struct {
 	Name string `json:"name"`
 	Id   string `json:"id"`
 }
 
 type PlaylistInfo struct {
 	Items []Playlist `json:"items"`
+}
+
+type PlaylistResponse struct {
+	Items []TrackItem `json:"items"` // Corrected
+}
+
+type TrackItem struct {
+	Track Track `json:"track"` // Corrected
+}
+
+type Track struct {
+	Name string `json:"name"`
+	ID   string `json:"id"`
+}
+type PlaylistWithTracks struct {
+	PlaylistName string      `json:"playlist_name"`
+	Tracks       []TrackItem `json:"items"`
 }
 
 const endpoint string = "https://api.spotify.com/v1/me/playlists"
@@ -63,14 +80,16 @@ func main() {
 				return
 			}
 			token = string(bytetoken)
-  fmt.Println(token)	
-    }
+			fmt.Println(token)
+		}
 	}
 
 	req, err := http.NewRequest("GET", endpoint, nil)
-	if err != nil {
-		log.Fatal(err)
+	/*if err != nil {for _, item := range tracks {
+		fmt.Printf("Track Name: %s, ID: %s\n", item.Track.Name, item.Track.ID)
 	}
+		log.Fatal(err)
+	}*/
 	fmt.Println(token)
 	req.Header.Set("Authorization", "Bearer "+token)
 
@@ -87,7 +106,7 @@ func main() {
 	}
 
 	if resp.Header.Get("Retry-After") != "" {
-		fmt.Println("rate limited by the spotify api, you ran the code too much, retry in %s:\n %s", resp.Header.Get("Retry-After"), string(body))
+		fmt.Printf("rate limited by the spotify api, you ran the code too much, retry in %s:\n %s", resp.Header.Get("Retry-After"), string(body))
 		return
 
 	}
@@ -109,75 +128,67 @@ func main() {
 	// fmt.Println(data)
 
 	client = &http.Client{}
-	for _, playlist := range data.Items {
-		//fmt.Printf("Playlist Name: %s, ID: %s\n", playlist.Name, playlist.Id)
+for _, playlist := range data.Items {
+	fmt.Printf("Original Playlist Name: %s, ID: %s\n", playlist.Name, playlist.Id)
 
-		fields := "items.track(name,id)"
-		url := fmt.Sprintf("https://api.spotify.com/v1/playlists/%s/tracks?fields=%s", playlist.Id, fields)
-		playlistReq, err := http.NewRequest("GET", url, nil)
-		if err != nil {
-			log.Fatal(err)
-		}
-		playlistReq.Header.Set("Authorization", "Bearer "+token)
-		//playlistReq.Header.Set("User-Agent", "curl/7.64.1")
-		client := &http.Client{}
-		playlistResp, err := client.Do(playlistReq)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer playlistResp.Body.Close()
+	fields := "items.track(name,id)"
+	url := fmt.Sprintf("https://api.spotify.com/v1/playlists/%s/tracks?fields=%s", playlist.Id, fields)
+	playlistReq, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	playlistReq.Header.Set("Authorization", "Bearer "+token)
+	client := &http.Client{}
+	playlistResp, err := client.Do(playlistReq)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer playlistResp.Body.Close()
 
-		playlistBody, err := io.ReadAll(playlistResp.Body)
-		if err != nil {
-			fmt.Println("error reading body", err)
-			return
-		}
+	playlistBody, err := io.ReadAll(playlistResp.Body)
+	if err != nil {
+		fmt.Println("error reading body", err)
+		return
+	}
 
-		fmt.Println(string(playlistBody))
-		fileWriter, err := os.OpenFile("playlist.json", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-		if err != nil {
-			log.Fatal("error opening playlist.json file:", err)
-		}
+	var musicData PlaylistResponse
+	err = json.Unmarshal(playlistBody, &musicData)
+	if err != nil {
+		fmt.Println("error unmarshaling playlist content:", err)
+		return
+	}
 
-		defer fileWriter.Close()
+	// Create a struct that combines the playlist name with the track data
+	playlistWithTracks := PlaylistWithTracks{
+		PlaylistName: playlist.Name,
+		Tracks:       musicData.Items,
+	}
 
-		if err != nil {
-			fmt.Println("error marshalling body", err)
-			return
-		}
+	// Writing to the file
+	fileWriter, err := os.OpenFile(playlistFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		log.Fatal("error opening playlist.json file:", err)
+	}
+	defer fileWriter.Close()
 
-		towrite := fmt.Sprintf(`"%s" : [
-                    
-  `, playlist.Name)
+	// Marshal the playlist with track data to JSON
+	jsonData, err := json.MarshalIndent(playlistWithTracks, "", "  ")
+	if err != nil {
+		log.Fatal("error marshaling data to JSON:", err)
+	}
 
-		_, err = fileWriter.Write([]byte(towrite))
-		if err != nil {
-			log.Fatal("error writing to playlist.json:", err)
-		}
+	_, err = fileWriter.Write(jsonData)
+	if err != nil {
+		log.Fatal("error writing to playlist.json:", err)
+	}
 
-		_, err = fileWriter.Write([]byte(playlistBody))
-		if err != nil {
-			log.Fatal("error writing to playlist.json:", err)
-		}
-
-		endtowrite := `
-    ]`
-
-		_, err = fileWriter.Write([]byte(endtowrite))
-		if err != nil {
-			log.Fatal("error writing to playlist.json:", err)
-		}
-/*		var playlistResponse PlaylistResponse
-		err = json.Unmarshal(body, &playlistResponse)
-		if err != nil {
-			log.Fatal("error unmarshaling data", err)
-		}
-*/
+	fmt.Printf("Updated Playlist with Tracks: %s\n", playlist.Name)
 }
 
 }
+
 func printHelp() {
-	fmt.Println("Usage: myprogram [options]")
+	fmt.Println("Usage: go run playlist.go [options]")
 	fmt.Println("Options:")
 	fmt.Println("  -h    Input this flag to print this message of help")
 	fmt.Println("  -t    Token flag, (-t 'your_token')")
