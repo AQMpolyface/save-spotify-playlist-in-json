@@ -31,10 +31,6 @@ type Track struct {
 	Name string `json:"name"`
 	ID   string `json:"id"`
 }
-type PlaylistWithTracks struct {
-	PlaylistName string      `json:"playlist_name"`
-	Tracks       []TrackItem `json:"items"`
-}
 
 const endpoint string = "https://api.spotify.com/v1/me/playlists"
 
@@ -106,7 +102,7 @@ func main() {
 	}
 
 	if resp.Header.Get("Retry-After") != "" {
-		fmt.Printf("rate limited by the spotify api, you ran the code too much, retry in %s:\n %s", resp.Header.Get("Retry-After"), string(body))
+		fmt.Println("rate limited by the spotify api, you ran the code too much, retry in %s:\n %s", resp.Header.Get("Retry-After"), string(body))
 		return
 
 	}
@@ -116,7 +112,7 @@ func main() {
 		return
 	}
 
-	//fmt.Println(string(body))
+  
 	//os.WriteFile("data1.json", body, 0644)
 
 	var data PlaylistInfo
@@ -128,63 +124,63 @@ func main() {
 	// fmt.Println(data)
 
 	client = &http.Client{}
-for _, playlist := range data.Items {
-	fmt.Printf("Original Playlist Name: %s, ID: %s\n", playlist.Name, playlist.Id)
+	for _, playlist := range data.Items {
+		fmt.Printf("Playlist Name: %s, ID: %s\n", playlist.Name, playlist.Id)
 
-	fields := "items.track(name,id)"
-	url := fmt.Sprintf("https://api.spotify.com/v1/playlists/%s/tracks?fields=%s", playlist.Id, fields)
-	playlistReq, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		log.Fatal(err)
+		fields := "items.track(name,id)"
+		url := fmt.Sprintf("https://api.spotify.com/v1/playlists/%s/tracks?fields=%s", playlist.Id, fields)
+		playlistReq, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+		playlistReq.Header.Set("Authorization", "Bearer "+token)
+		//playlistReq.Header.Set("User-Agent", "curl/7.64.1")
+		client := &http.Client{}
+		playlistResp, err := client.Do(playlistReq)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer playlistResp.Body.Close()
+
+		playlistBody, err := io.ReadAll(playlistResp.Body)
+		if err != nil {
+			fmt.Println("error reading body", err)
+			return
+		}
+
+		var musicData PlaylistResponse
+		err = json.Unmarshal(playlistBody, &musicData)
+		if err != nil {
+			fmt.Println("error unmarshaling playlist content:", err)
+			return
+		}
+
+		// Iterate over the tracks and print their names and IDs
+
+    for _, item := range musicData.Items {
+			fmt.Println(item.Track.Name)
+			fmt.Println(item.Track.ID)
+		}
+
+		// Writing to the file
+		fileWriter, err := os.OpenFile(playlistFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+		if err != nil {
+			log.Fatal("error opening playlist.json file:", err)
+			fmt.Println("uwu")
+		}
+		defer fileWriter.Close()
+
+		// Write the JSON data to the file
+		jsonData, err := json.MarshalIndent(musicData, "", "  ")
+		if err != nil {
+			log.Fatal("error marshaling data to JSON:", err)
+		}
+
+		_, err = fileWriter.Write(jsonData)
+		if err != nil {
+			log.Fatal("error writing to playlist.json:", err)
+		}
 	}
-	playlistReq.Header.Set("Authorization", "Bearer "+token)
-	client := &http.Client{}
-	playlistResp, err := client.Do(playlistReq)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer playlistResp.Body.Close()
-
-	playlistBody, err := io.ReadAll(playlistResp.Body)
-	if err != nil {
-		fmt.Println("error reading body", err)
-		return
-	}
-
-	var musicData PlaylistResponse
-	err = json.Unmarshal(playlistBody, &musicData)
-	if err != nil {
-		fmt.Println("error unmarshaling playlist content:", err)
-		return
-	}
-
-	// Create a struct that combines the playlist name with the track data
-	playlistWithTracks := PlaylistWithTracks{
-		PlaylistName: playlist.Name,
-		Tracks:       musicData.Items,
-	}
-
-	// Writing to the file
-	fileWriter, err := os.OpenFile(playlistFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-	if err != nil {
-		log.Fatal("error opening playlist.json file:", err)
-	}
-	defer fileWriter.Close()
-
-	// Marshal the playlist with track data to JSON
-	jsonData, err := json.MarshalIndent(playlistWithTracks, "", "  ")
-	if err != nil {
-		log.Fatal("error marshaling data to JSON:", err)
-	}
-
-	_, err = fileWriter.Write(jsonData)
-	if err != nil {
-		log.Fatal("error writing to playlist.json:", err)
-	}
-
-	fmt.Printf("Updated Playlist with Tracks: %s\n", playlist.Name)
-}
-
 }
 
 func printHelp() {
