@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+//	"time"
 )
 
 type Playlist struct {
@@ -34,7 +35,7 @@ type Track struct {
 
 const endpoint string = "https://api.spotify.com/v1/me/playlists"
 
-var playlistFile string = "playlist.json"
+var playlistFileJson string = "playlist.json"
 
 const playlistUrl string = "https://api.spotify.com/v1/playlists/"
 
@@ -43,7 +44,7 @@ func main() {
 	var token string
 	flag.BoolVar(&help, "h", false, "input this flage to print this message of help")
 	flag.StringVar(&token, "t", "", "token flag, (-t 'your_token')")
-	flag.StringVar(&playlistFile, "f", "", "file to write to flag (-f 'filepath')")
+	flag.StringVar(&playlistFileJson, "f", "", "file to write to flag (-f 'filepath')")
 	flag.Parse()
 
 	if help {
@@ -124,9 +125,31 @@ func main() {
 	// fmt.Println(data)
 
 	client = &http.Client{}
+  if _, err := os.Stat("playlist.json"); os.IsNotExist(err) {
+        // Create the file if it does not exist
+        _, err := os.Create("playlist.json")
+        if err != nil {
+            log.Fatalf("Failed to create file: %v", err)
+        }
+    }
+  playlistFile, err := os.OpenFile("playlist.json",os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+if err != nil {
+        log.Fatalf("Failed to open file: %v", err)
+    }
+    defer playlistFile.Close()
+  startPlaylist := `{`
+if _, err := playlistFile.WriteString(startPlaylist + "\n"); err != nil {
+        log.Fatalf("Failed to write to file: %v", err)
+    }
 	for _, playlist := range data.Items {
 		fmt.Printf("Playlist Name: %s, ID: %s\n", playlist.Name, playlist.Id)
 
+playlistName := fmt.Sprintf(`"playlistname" : "%s",
+    "playlistis" : "%s",
+    "items" [`, playlist.Name, playlist.Id)
+if _, err := playlistFile.WriteString(playlistName + "\n"); err != nil {
+        log.Fatalf("Failed to write to file: %v", err)
+    }
 		fields := "items.track(name,id)"
 		url := fmt.Sprintf("https://api.spotify.com/v1/playlists/%s/tracks?fields=%s", playlist.Id, fields)
 		playlistReq, err := http.NewRequest("GET", url, nil)
@@ -155,15 +178,26 @@ func main() {
 			return
 		}
 
-		// Iterate over the tracks and print their names and IDs
-
-    for _, item := range musicData.Items {
-			fmt.Println(item.Track.Name)
+   for _, item := range musicData.Items {
+//			time.Sleep(time.Second * 1)
+      fmt.Println(item.Track.Name)
 			fmt.Println(item.Track.ID)
+songName := fmt.Sprintf(` {
+  "song" : "%s",
+  "id" : "%s"
+        }`,item.Track.Name, item.Track.ID )
+if _, err := playlistFile.WriteString(songName + "\n"); err != nil {
+        log.Fatalf("Failed to write to file: %v", err)
+    }
 		}
 
+endSong := `]`
+    if _, err := playlistFile.WriteString(endSong + "\n"); err != nil {
+        log.Fatalf("Failed to write to file: %v", err)
+    }
+
 		// Writing to the file
-		fileWriter, err := os.OpenFile(playlistFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+		/*fileWriter, err := os.OpenFile("playlist.json", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 		if err != nil {
 			log.Fatal("error opening playlist.json file:", err)
 			fmt.Println("uwu")
@@ -180,7 +214,25 @@ func main() {
 		if err != nil {
 			log.Fatal("error writing to playlist.json:", err)
 		}
-	}
+    endPlaylist := `
+    }
+    `
+err = os.WriteFile(playlistFile, []byte(startPlaylist), 0644)
+    if err != nil {
+        log.Fatalf("Failed to write to file: %v", err)
+    }*/
+	break
+  }
+
+endFile := `
+  }
+  `
+    if _, err := playlistFile.WriteString(endFile + "\n"); err != nil {
+        log.Fatalf("Failed to write to file: %v", err)
+    }
+
+
+
 }
 
 func printHelp() {
