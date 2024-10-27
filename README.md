@@ -14,9 +14,8 @@ cd save-spotify-playlist-in-json
 
 go run playlist.go -t "your_token"
 
-or you can put the token if a file called token, in the same directory as the playlist.go file.
+i hosted it on my website. you can run this tool online on https://polyface.ch/projects/playlistjson
 
-ok i hosted it on my website. you can run this tool online on https://polyface.ch/projects/playlistjson
 
 (you still need a token, but the website is open source so you can see that i am not doing anything spooky with your data)
 
