@@ -45,7 +45,7 @@ func main() {
 	var help bool
 	var token string
 	flag.BoolVar(&help, "h", false, "input this flage to print this message of help")
-		flag.StringVar(&token, "t", "", "token flag, (-t 'your_token')")
+	flag.StringVar(&token, "t", "", "token flag, (-t 'your_token')")
 	flag.StringVar(&playlistFileJson, "f", "", "file to write to flag (-f 'filepath')")
 	flag.Parse()
 
@@ -58,7 +58,7 @@ func main() {
 		os.Exit(1)
 
 	}
-	//i cant get this to fk work idk what to do :(
+	//i cant get this to work idk what to do :(
 	/* 		_, err := os.Stat("token.txt")
 	if os.IsNotExist(err) {
 		fmt.Println("file doesnt exist", err)
@@ -214,5 +214,5 @@ func printHelp() {
 	fmt.Println("  -f    File to write to flag (-f 'filepath')")
 	fmt.Println()
 	fmt.Println("Example:")
-	fmt.Println("  myprogram -t 'your_token' -f 'filepath'")
+	fmt.Println(" go run main.go -t 'your_token' -f 'filepath'")
 }
