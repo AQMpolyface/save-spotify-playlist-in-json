@@ -8,11 +8,14 @@ you need to have go installed, see => https://go.dev/
 
 if you wanna run it, you will first have to get a token, then
 
+```
+
 git clone https://github.com/AQMpolyface/save-spotify-playlist-in-json.git
 
 cd save-spotify-playlist-in-json
 
 go run playlist.go -t "your_token"
+```
 
 i hosted it on my website. you can run this tool online on https://polyface.ch/projects/playlistjson
 
